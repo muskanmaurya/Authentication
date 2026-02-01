@@ -194,6 +194,7 @@ export const logoutUser=async(req,res)=>{
 export const forgotPassword=async(req,res)=>{
     try {
         const {email}=req.body;
+        console.log("Forgot password request for:", email)
         const user=await User.findOne({email})
 
         if(!user){
@@ -205,6 +206,7 @@ export const forgotPassword=async(req,res)=>{
         const otp=Math.floor(100000+Math.random()*900000).toString()
         const expiry=new Date(Date.now()+10*60*1000)
         
+        console.log("Generated OTP:", otp, "for email:", email)
         user.otp=otp;
         user.otpExpiry=expiry;
         await user.save()
@@ -214,6 +216,7 @@ export const forgotPassword=async(req,res)=>{
             message:"OTP sent to your email"
         })
     } catch(error) {
+        console.error("Forgot password error:", error)
         return res.status(500).json({
             success:false,
             message:error.message
@@ -224,6 +227,7 @@ export const forgotPassword=async(req,res)=>{
 export const verifyOtp=async(req,res)=>{
     const {otp}=req.body
     const email=req.params.email
+    console.log("Verifying OTP - Received:", otp, "Email:", email)
     if(!otp){
         return res.status(400).json({
             success:false,
@@ -234,13 +238,17 @@ export const verifyOtp=async(req,res)=>{
     try {
         const user=await User.findOne({email})
         if(!user){
+            console.log("User not found:", email)
             return res.status(404).json({
                 success:false,
                 message:"User not found"
             })
         }
 
+        console.log("Stored OTP:", user.otp, "Expiry:", user.otpExpiry)
+
         if(!user.otp || !user.otpExpiry){
+            console.log("OTP not generated or already verified")
             return res.status(400).json({
                 success:false,
                 message:"OTP not generated or already verified"
@@ -248,13 +256,16 @@ export const verifyOtp=async(req,res)=>{
         }
 
         if(user.otpExpiry<new Date()){
+            console.log("OTP expired")
             return res.status(400).json({
                 success:false,
                 message:"OTP has expired. Please request a new one"
             })
         }
 
-        if(otp!==user.otp){
+        console.log("Comparing - Received OTP:", otp.toString(), "Stored OTP:", user.otp.toString())
+        if(otp.toString()!==user.otp.toString()){
+            console.log("OTP mismatch")
             return res.status(400).json({
                 success:false,
                 message:"Invalid OTP"

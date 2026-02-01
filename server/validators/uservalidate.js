@@ -19,14 +19,12 @@ export const emailSchema=z.object({
 })
 
 export const otpSchema=z.object({
-    email:z.string().email("Invalid email format").trim().toLowerCase(),
     otp:z.string().length(6,"OTP must be 6 digits")
 })
 
 export const resetPasswordSchema=z.object({
-    email:z.string().email("Invalid email format").trim().toLowerCase(),
-    otp:z.string().length(6,"OTP must be 6 digits"),
-    newPassword:z.string().min(4,"password must be atleast 4 characters long")
+    newPassword:z.string().min(4,"password must be atleast 4 characters long"),
+    confirmPassword:z.string().min(4,"password must be atleast 4 characters long")
 })
 
 export const validateUser=(schema)=>async(req, res, next)=>{
